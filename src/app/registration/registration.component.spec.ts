@@ -8,6 +8,10 @@ import { Component } from '@angular/core';
 export class RegistrationComponent {
   filesPreview: Array<{ name: string, src: string | ArrayBuffer | null }> = [];
 
+  // List of branches
+  branches: string[] = ['Branch A', 'Branch B', 'Branch C', 'Branch D'];
+  selectedBranch: string = 'Preferred Branch';
+
   onInputFocus(event: FocusEvent): void {
     const inputElement = event.target as HTMLInputElement;
     inputElement.classList.add('filled');
@@ -51,5 +55,19 @@ export class RegistrationComponent {
     const selectElement = event.target as HTMLSelectElement;
     const selectedLanguage = selectElement.value;
     // Handle language change
+  }
+
+  setBranch(event: Event): void{
+    const selectedElement = event.target as HTMLSelectElement;
+    const branch = selectedElement.value;
+    this.selectedBranch = branch;
+  }
+
+  openLocation(): void {
+    // const lat = this.selectedBranch.branchlat;
+    // const lng = this.selectedBranch.branchlng;
+    // const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
+    // window.open(googleMapsUrl, '_blank');
+    console.log(this.selectedBranch)
   }
 }

@@ -1,13 +1,12 @@
-$primary-color: #007bff; // Blue color used for buttons and dropdown
+$primary-color: #007bff;
 $hover-color: darken($primary-color, 10%);
 $border-color: #ccc;
 $form-bg-color: #f9f9f9;
 $shadow-color: rgba(0, 0, 0, 0.1);
-$secondary-color: #f0f0f0; // Secondary color for dropdown options
+$secondary-color: #f0f0f0;
 
 .registrationForm {
   max-width: 700px;
-  width:max-content;
   margin: 50px auto;
   padding: 30px;
   border: 1px solid $border-color;
@@ -22,10 +21,9 @@ $secondary-color: #f0f0f0; // Secondary color for dropdown options
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
 
     .form-logo {
-      max-width: 100px; // Adjust logo size
+      max-width: 100px;
     }
 
     .languageSelect {
@@ -33,7 +31,6 @@ $secondary-color: #f0f0f0; // Secondary color for dropdown options
       font-size: 12px;
       border: 1px solid $primary-color;
       border-radius: 3px;
-      outline: none;
       background-color: $primary-color;
       color: white;
       cursor: pointer;
@@ -42,28 +39,13 @@ $secondary-color: #f0f0f0; // Secondary color for dropdown options
       &:hover {
         background-color: $hover-color;
       }
-
-      &:focus {
-        border-color: $hover-color;
-      }
-
-      option {
-        background-color: $secondary-color;
-        color: black;
-        padding: 5px;
-
-        &:hover {
-          background-color: lighten($secondary-color, 10%);
-        }
-      }
     }
   }
 
   .input-container {
     position: relative;
-    margin-bottom: 15px;
 
-    input {
+    input, select {
       width: calc(100% - 20px);
       padding: 12px 10px;
       font-size: 14px;
@@ -108,14 +90,8 @@ $secondary-color: #f0f0f0; // Secondary color for dropdown options
     border-radius: 5px;
     padding: 20px;
     text-align: center;
-    transition: border-color 0.3s;
-    cursor: pointer;
 
-    &:hover {
-      border-color: $primary-color;
-    }
-
-    input[type='file'] {
+    input[type="file"] {
       position: absolute;
       top: 0;
       left: 0;
@@ -126,28 +102,8 @@ $secondary-color: #f0f0f0; // Secondary color for dropdown options
     }
 
     .fileLabel {
-      display: block;
       font-size: 14px;
       color: #666;
-      pointer-events: none;
-    }
-
-    .clearBtn {
-      position: absolute;
-      bottom: 5px;
-      left: 5px;
-      padding: 2px 6px;
-      border: none;
-      border-radius: 3px;
-      background-color: $primary-color;
-      color: white;
-      font-size: 12px;
-      cursor: pointer;
-      transition: background-color 0.3s;
-
-      &:hover {
-        background-color: $hover-color;
-      }
     }
   }
 
@@ -172,7 +128,6 @@ $secondary-color: #f0f0f0; // Secondary color for dropdown options
       .preview-file-name {
         font-size: 14px;
         color: #333;
-        word-break: break-all;
       }
 
       .remove-file-btn {
@@ -181,7 +136,6 @@ $secondary-color: #f0f0f0; // Secondary color for dropdown options
         color: #ff0000;
         font-size: 20px;
         cursor: pointer;
-        transition: color 0.3s;
 
         &:hover {
           color: darken(#ff0000, 10%);
@@ -198,16 +152,28 @@ $secondary-color: #f0f0f0; // Secondary color for dropdown options
     color: white;
     font-size: 16px;
     cursor: pointer;
-    transition: background-color 0.3s;
 
     &:hover {
       background-color: $hover-color;
     }
   }
+
+  .branchInputContainer{
+    display: grid;
+    grid-template-columns: 5fr 1fr;
+    place-items: start;
+    justify-content: center;
+    text-align: center;
+  }
 }
 
-@media (max-width: 500px) {
-  .registrationForm {
-    padding: 15px;
-  }
+.locateBtnImg{
+  width: 30px !important;
+  display: none;
+}
+.locateBtn{
+  width: 30px !important;
+  background-color: red !important;
+  display: none !important;
+  
 }
