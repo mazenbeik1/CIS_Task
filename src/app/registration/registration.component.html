@@ -1,0 +1,79 @@
+<div class="registration">
+  <form class="registrationForm" (submit)="onSubmit()">
+    <div class="form-header">
+      <img src="./imgs/cisLogo.png" alt="Logo" class="form-logo" />
+      <select
+        id="languageSelect"
+        class="languageSelect"
+        (change)="changeLanguage($event)"
+        aria-label="Language"
+      >
+        <option value="en">en</option>
+        <option value="ar">ar</option>
+      </select>
+    </div>
+
+    <div class="input-container">
+      <input
+        class="textInp"
+        type="text"
+        name="Name"
+        id="nameInput"
+        (focus)="onInputFocus($event)"
+        (blur)="onInputBlur($event)"
+        required
+      />
+      <label for="nameInput">Name</label>
+    </div>
+
+    <div class="input-container">
+      <input
+        class="textInp"
+        type="email"
+        name="Email"
+        id="emailInput"
+        (focus)="onInputFocus($event)"
+        (blur)="onInputBlur($event)"
+        required
+      />
+      <label for="emailInput">Email</label>
+    </div>
+
+    <div class="input-container">
+      <input
+        class="textInp"
+        type="text"
+        name="PhoneNumber"
+        id="phoneNumberInput"
+        (focus)="onInputFocus($event)"
+        (blur)="onInputBlur($event)"
+        required
+      />
+      <label for="phoneNumberInput">Phone Number</label>
+    </div>
+
+    <div class="file-container">
+      <input
+        class="fileInput"
+        type="file"
+        name="attachments"
+        id="fileInput"
+        (change)="previewFiles($event)"
+        multiple
+      />
+      <label for="fileInput" class="fileLabel">
+        Drag & Drop files here or click to upload
+      </label>
+    </div>
+
+    <div class="file-preview-list" *ngIf="filesPreview.length">
+      <div class="file-preview-item" *ngFor="let file of filesPreview; let i = index">
+        <img *ngIf="file.src" [src]="file.src" alt="{{ file.name }}" class="preview-image" />
+        <span class="preview-file-name">{{ file.name }}</span>
+        <button type="button" class="remove-file-btn" (click)="removeFile(i)">×</button>
+      </div>
+    </div>
+
+    <button type="submit" class="submitBtn">Submit</button>
+  </form>
+</div>
