@@ -1,0 +1,18 @@
+{
+  "REGISTRATION_FORM": {
+    "NAME": "الاسم",
+    "EMAIL": "البريد الإلكتروني",
+    "PHONE_NUMBER": "رقم الهاتف",
+    "SELECT_BRANCH": "اختر الفرع الخاص بك",
+    "UPLOAD_FILES": "رفع الملفات",
+    "UPLOAD_FOLDERS": "رفع المجلدات",
+    "DRAG_DROP_FILES": "اسحب وأسقط الملفات هنا أو انقر للتحميل",
+    "DRAG_DROP_FOLDERS": "اسحب وأسقط المجلدات هنا أو انقر للتحميل",
+    "ATTACHMENTS_PREVIEW": "معاينة المرفقات",
+    "SUBMIT": "إرسال"
+  },
+  "LANGUAGES": {
+    "ENGLISH": "الإنجليزية",
+    "ARABIC": "العربية"
+  }
+}

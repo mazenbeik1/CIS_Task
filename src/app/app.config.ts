@@ -2,17 +2,8 @@ import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { routes } from './app.routes';
-import { HttpClient } from '@angular/common/http';
-import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
-
-
-// Function to load translation files
-export function HttpLoaderFactory(http: HttpClient) {
-  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
-}
-
-
+// Branch and response interfaces
 export interface Branch {
   branchcity: string;
   branchcode: string;
@@ -26,9 +17,14 @@ export interface Branch {
 export interface resp {
   success: boolean;
   result: Branch[];
-  message: null
+  message: null;
 }
 
+// Application configuration
 export const appConfig: ApplicationConfig = {
-  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes),provideHttpClient(), ]
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }), 
+    provideRouter(routes),
+    provideHttpClient(),
+  ],
 };

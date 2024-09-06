@@ -1,34 +1,39 @@
 <div class="registrationForm" (submit)="onSubmit()">
   <div class="form-header">
     <img src="./imgs/cisLogo-clear.png" alt="Logo" class="form-logo" />
-    <select id="languageSelect" class="languageSelect" (change)="changeLanguage($event)" aria-label="Language">
-      <option value="en">en</option>
-      <option value="ar">ar</option>
+    <select
+      id="languageSelect"
+      class="languageSelect"
+      (change)="changeLanguage($event)"
+      aria-label="Language"
+    >
+      <option value="en" [selected]="selectedLanguage === 'en'">English</option>
+      <option value="ar" [selected]="selectedLanguage === 'ar'">Arabic</option>
     </select>
   </div>
 
   <!-- Name Input -->
   <div class="input-container">
     <input type="text" name="Name" id="nameInput" (focus)="onInputFocus($event)" (blur)="onInputBlur($event)" required />
-    <label for="nameInput">Name</label>
+    <label for="nameInput">{{ 'REGISTRATION_FORM.NAME' | translate }}</label>
   </div>
 
   <!-- Email Input -->
   <div class="input-container">
     <input type="email" name="Email" id="emailInput" (focus)="onInputFocus($event)" (blur)="onInputBlur($event)" required />
-    <label for="emailInput">Email</label>
+    <label for="emailInput">{{ 'REGISTRATION_FORM.EMAIL' | translate }}</label>
   </div>
 
   <!-- Phone Number Input -->
   <div class="input-container">
     <input type="text" name="PhoneNumber" id="phoneNumberInput" (focus)="onInputFocus($event)" (blur)="onInputBlur($event)" required />
-    <label for="phoneNumberInput">Phone Number</label>
+    <label for="phoneNumberInput">{{ 'REGISTRATION_FORM.PHONE_NUMBER' | translate }}</label>
   </div>
 
   <!-- Branch Selection -->
   <div class="input-container branchInputContainer">
     <select class="branchSelect" id="branchSelect" (change)="setBranch($event)" name="branch" required>
-      <option disabled selected>Select your branch</option>
+      <option disabled selected>{{ 'REGISTRATION_FORM.SELECT_BRANCH' | translate }}</option>
       <option *ngFor="let branch of branches" [value]="branch.branchcode">
         {{ branch.branchname }}, {{ branch.branchcode }}
       </option>
@@ -44,7 +49,7 @@
       <input type="checkbox" (change)="toggleUploadType(uploadType === 'file' ? 'folder' : 'file')" />
       <span class="slider round"></span>
     </label>
-    <span>{{ uploadType === 'file' ? 'Upload Files' : 'Upload Folders' }}</span>
+    <span>{{ uploadType === 'file' ? ('REGISTRATION_FORM.UPLOAD_FILES' | translate) : ('REGISTRATION_FORM.UPLOAD_FOLDERS' | translate) }}</span>
   </div>
 
   <!-- File Upload Section -->
@@ -58,7 +63,7 @@
       multiple
     />
     <label for="fileInput" class="fileLabel">
-      Drag & Drop files here or click to upload
+      {{ 'REGISTRATION_FORM.DRAG_DROP_FILES' | translate }}
     </label>
   </div>
 
@@ -74,13 +79,13 @@
       multiple
     />
     <label for="folderInput" class="fileLabel">
-      Drag & Drop folders here or click to upload
+      {{ 'REGISTRATION_FORM.DRAG_DROP_FOLDERS' | translate }}
     </label>
   </div>
 
   <!-- Attachments Preview Section -->
   <div *ngIf="attachmentsList.length" class="attachments-preview-list">
-    <h3>Attachments Preview</h3>
+    <h3>{{ 'REGISTRATION_FORM.ATTACHMENTS_PREVIEW' | translate }}</h3>
     <ul>
       <li *ngFor="let item of attachmentsList">
         <!-- Display File Previews -->
@@ -128,5 +133,5 @@
   </ng-template>
 
   <!-- Submit Button -->
-  <button type="submit" class="submitBtn">Submit</button>
+  <button type="submit" class="submitBtn">{{ 'REGISTRATION_FORM.SUBMIT' | translate }}</button>
 </div>

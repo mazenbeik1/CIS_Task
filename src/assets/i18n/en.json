@@ -1,0 +1,18 @@
+{
+  "REGISTRATION_FORM": {
+    "NAME": "Name",
+    "EMAIL": "Email",
+    "PHONE_NUMBER": "Phone Number",
+    "SELECT_BRANCH": "Select your branch",
+    "UPLOAD_FILES": "Upload Files",
+    "UPLOAD_FOLDERS": "Upload Folders",
+    "DRAG_DROP_FILES": "Drag & Drop files here or click to upload",
+    "DRAG_DROP_FOLDERS": "Drag & Drop folders here or click to upload",
+    "ATTACHMENTS_PREVIEW": "Attachments Preview",
+    "SUBMIT": "Submit"
+  },
+  "LANGUAGES": {
+    "ENGLISH": "English",
+    "ARABIC": "Arabic"
+  }
+}

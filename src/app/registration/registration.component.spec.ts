@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { TranslateService, TranslateModule } from '@ngx-translate/core'; // Import TranslateModule here
 import { Branch, resp } from '../app.config';
 import { NgFor, NgIf, CommonModule, NgTemplateOutlet, NgComponentOutlet } from '@angular/common';
 
@@ -8,24 +9,48 @@ import { NgFor, NgIf, CommonModule, NgTemplateOutlet, NgComponentOutlet } from '
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.scss'],
   standalone: true,
-  imports: [NgFor, NgIf, CommonModule, NgTemplateOutlet, NgComponentOutlet],
+  imports: [
+    CommonModule,
+    NgFor,
+    NgIf,
+    NgTemplateOutlet,
+    NgComponentOutlet,
+    TranslateModule, // Import TranslateModule here to enable the translate pipe
+  ],
 })
 export class RegistrationComponent {
+  // Injecting necessary services
+  private http = inject(HttpClient);
+  private translate = inject(TranslateService);
+
   attachmentsList: any[] = []; // Unified list for both files and folders
   branches: Branch[] = [];
   selectedBranch = <Branch>{};
-  formData: { name: string; email: string; phoneNumber: string } = {
+  formData = {
     name: '',
     email: '',
     phoneNumber: '',
   };
-
+  selectedLanguage: string = 'en'; // Default language
   uploadType: 'file' | 'folder' = 'file'; // Default to file upload
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    this.translate.setDefaultLang('en'); // Set default language to English
+    this.translate.use('en'); // Start with English as default language
+  }
 
   ngOnInit(): void {
     this.fetchBranches();
+  }
+
+  // Function to switch between languages with proper type assertion
+  changeLanguage(event: Event): void {
+    const target = event.target as HTMLSelectElement | null; // Assert event.target type
+    if (target && target.value) {
+      const selectedLanguage = target.value;
+      this.translate.use(selectedLanguage); // Change the language
+      this.selectedLanguage = selectedLanguage;
+    }
   }
 
   // Switch between file and folder upload without removing existing attachments
@@ -39,8 +64,8 @@ export class RegistrationComponent {
     const files = fileInput.files;
 
     if (files) {
-      Array.from(files).forEach(file => {
-        if (!this.attachmentsList.some(f => f.name === file.name)) {
+      Array.from(files).forEach((file) => {
+        if (!this.attachmentsList.some((f) => f.name === file.name)) {
           const reader = new FileReader();
           reader.onload = () => {
             this.attachmentsList.push({ name: file.name, src: reader.result, type: 'file' });
@@ -52,34 +77,45 @@ export class RegistrationComponent {
   }
 
   // Handle folder preview for folder upload
-  previewFolders(event: Event): void {
+  async previewFolders(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = input.files;
 
     if (files) {
-      const fileMap = this.buildFileHierarchy(Array.from(files));
+      const fileMap = await this.buildFileHierarchy(Array.from(files));
       this.attachmentsList = this.attachmentsList.concat(fileMap); // Append new folder structure to unified list
     }
   }
 
   // Build the file hierarchy recursively
-  buildFileHierarchy(files: File[]): any[] {
+  async buildFileHierarchy(files: File[]): Promise<any[]> {
     const fileMap: { [key: string]: any } = {};
-    files.forEach((file) => {
+    for (const file of files) {
+      // Ignore `desktop.ini`
+      if (file.name === 'desktop.ini') continue;
+
       const pathParts = file.webkitRelativePath.split('/');
       let currentDir = fileMap;
 
-      pathParts.forEach((part, index) => {
+      for (let index = 0; index < pathParts.length; index++) {
+        const part = pathParts[index];
         if (index === pathParts.length - 1) {
-          currentDir[part] = { name: file.name, file, isImage: this.isImage(file), type: 'file', isOpen: false };
+          currentDir[part] = {
+            name: file.name,
+            file,
+            isImage: this.isImage(file),
+            previewSrc: this.isImage(file) ? await this.getImagePreview(file) : null, // Check and add preview for images
+            type: 'file',
+            isOpen: false,
+          };
         } else {
           if (!currentDir[part]) {
             currentDir[part] = { name: part, children: [], type: 'folder', isOpen: false };
           }
           currentDir = currentDir[part].children;
         }
-      });
-    });
+      }
+    }
     return this.convertFileMapToArray(fileMap);
   }
 
@@ -88,29 +124,39 @@ export class RegistrationComponent {
     return Object.keys(fileMap).map((key) => {
       const value = fileMap[key];
       if (value.file) {
-        return { name: value.name, file: value.file, isImage: value.isImage, previewSrc: this.isImage(value.file) ? this.getImagePreview(value.file) : null, type: 'file' };
+        return {
+          name: value.name,
+          file: value.file,
+          isImage: value.isImage,
+          previewSrc: value.previewSrc, // Image preview if available
+          type: 'file',
+        };
       } else {
-        return { name: key, children: this.convertFileMapToArray(value.children), type: 'folder', isOpen: value.isOpen };
+        return {
+          name: key,
+          children: this.convertFileMapToArray(value.children),
+          type: 'folder',
+          isOpen: value.isOpen,
+        };
       }
     });
   }
 
   // Determine if the file is an image
   isImage(file: File): boolean {
-    return file.type.startsWith('image/');
+    const allowedTypes = ['jpg', 'jpeg', 'png', 'jfif'];
+    return allowedTypes.includes(file.name.split('.').pop() || '') || file.type.startsWith('image/');
   }
 
   // Read the image file and return its data URL for preview
-  getImagePreview(file: File): string | null {
-    const reader = new FileReader();
-    let previewSrc: string | null = null;
-
-    reader.onload = (event) => {
-      previewSrc = event.target?.result as string;
-    };
-
-    reader.readAsDataURL(file);
-    return previewSrc;
+  getImagePreview(file: File): Promise<string | null> {
+    return new Promise<string | null>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        resolve(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   // Fetch branches from the API
@@ -118,9 +164,7 @@ export class RegistrationComponent {
     const apiUrl = 'http://81.29.111.142:8085/CVM/CVMMobileAPIs/api/getBranches';
     this.http.get<resp>(apiUrl).subscribe({
       next: (response: resp) => {
-        this.branches = response.result.sort((a, b) =>
-          a.branchcode > b.branchcode ? 1 : -1
-        );
+        this.branches = response.result.sort((a, b) => (a.branchcode > b.branchcode ? 1 : -1));
       },
       error: (error) => {
         console.error('Error fetching branches:', error);
@@ -133,18 +177,13 @@ export class RegistrationComponent {
     console.log('Form Submitted', this.formData);
   }
 
-  // Handle language change
-  changeLanguage(event: Event): void {
-    const select = event.target as HTMLSelectElement;
-    const selectedLanguage = select.value;
-    console.log('Selected Language:', selectedLanguage);
-  }
-
   // Open the branch location in Google Maps
   openLocation(): void {
-    if (this.selectedBranch && this.selectedBranch.branchcode) {
-      const branchLocationUrl = `https://www.google.com/maps?q=${this.selectedBranch.branchname}`;
-      window.open(branchLocationUrl, '_blank');
+    if (this.selectedBranch && this.selectedBranch.branchlat && this.selectedBranch.branchlng) {
+      const lat = this.selectedBranch.branchlat;
+      const lng = this.selectedBranch.branchlng;
+      const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+      window.open(googleMapsUrl, '_blank');
     }
   }
 
@@ -175,6 +214,6 @@ export class RegistrationComponent {
   }
 
   getBranchByID(id: string): Branch {
-    return this.branches.find(branch => branch.branchcode === id) || <Branch>{};
+    return this.branches.find((branch) => branch.branchcode === id) || <Branch>{};
   }
 }
