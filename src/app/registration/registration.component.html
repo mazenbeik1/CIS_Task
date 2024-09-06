@@ -1,119 +1,77 @@
-<div class="registration">
-  <div class="registrationForm" (submit)="onSubmit()">
-    <div class="form-header">
-      <img src="./imgs/cisLogo.png" alt="Logo" class="form-logo" />
-      <select
-        id="languageSelect"
-        class="languageSelect"
-        (change)="changeLanguage($event)"
-        aria-label="Language"
-      >
-        <option value="en">en</option>
-        <option value="ar">ar</option>
-      </select>
-    </div>
-
-    <!-- Name Input -->
-    <div class="input-container">
-      <input
-        class="textInp"
-        type="text"
-        name="Name"
-        id="nameInput"
-        (focus)="onInputFocus($event)"
-        (blur)="onInputBlur($event)"
-        required
-      />
-      <label for="nameInput">Name</label>
-    </div>
-
-    <!-- Email Input -->
-    <div class="input-container">
-      <input
-        class="textInp"
-        type="email"
-        name="Email"
-        id="emailInput"
-        (focus)="onInputFocus($event)"
-        (blur)="onInputBlur($event)"
-        required
-      />
-      <label for="emailInput">Email</label>
-    </div>
-
-    <!-- Phone Number Input -->
-    <div class="input-container">
-      <input
-        class="textInp"
-        type="text"
-        name="PhoneNumber"
-        id="phoneNumberInput"
-        (focus)="onInputFocus($event)"
-        (blur)="onInputBlur($event)"
-        required
-      />
-      <label for="phoneNumberInput">Phone Number</label>
-    </div>
-
-    <!-- Dropdown for Selecting Preferred Branch -->
-    <div class="input-container branchInputContainer">
-      <select
-        class="branchSelect"
-        id="branchSelect"
-        name="branch"
-        (change)="setBranch($event)"
-        required
-      >
-        <option [value]="{}" disabled selected>Select your branch</option>
-        <option *ngFor="let branch of branches" [value]="branch.branchcode">
-          {{ branch.branchname }}, {{ branch.branchcode }}
-        </option>
-      </select>
-      <div class="locateBtn" *ngIf="selectedBranch.branchcode" (click)="openLocation()">
-        <img class="locateBtnImg" src="./imgs/MapsLogo.png" alt="Locate" />
-      </div>
-    </div>
-
-    <!-- Folder Upload Section -->
-    <div class="file-container">
-      <input
-        class="fileInput"
-        type="file"
-        name="attachments"
-        id="fileInput"
-        (change)="previewFolders($event)"
-        webkitdirectory directory multiple
-      />
-      <label for="fileInput" class="fileLabel">
-        Drag & Drop folders here, or click to upload
-      </label>
-    </div>
-
-    <!-- File Upload Section -->
-    <div class="file-container">
-      <input
-        class="fileInput"
-        type="file"
-        name="attachments"
-        id="fileInput"
-        (change)="previewFiles($event)"
-        multiple
-      />
-      <label for="fileInput" class="fileLabel">
-        Drag & Drop files here or click to upload
-      </label>
-    </div>
-
-    <!-- File Preview Section -->
-    <div class="file-preview-list" *ngIf="filesPreview.length">
-      <div class="file-preview-item" *ngFor="let file of filesPreview; let i = index">
-        <img *ngIf="file.src" [src]="file.src" alt="{{ file.name }}" class="preview-image" />
-        <span class="preview-file-name">{{ file.name }}</span>
-        <button type="button" class="remove-file-btn" (click)="removeFile(i)">×</button>
-      </div>
-    </div>
-
-    <!-- Submit Button -->
-    <button type="submit" class="submitBtn">Submit</button>
+<div class="registrationForm" (submit)="onSubmit()">
+  <div class="form-header">
+    <img src="./imgs/cisLogo-clear.png" alt="Logo" class="form-logo" />
+    <select id="languageSelect" class="languageSelect" (change)="changeLanguage($event)" aria-label="Language">
+      <option value="en">en</option>
+      <option value="ar">ar</option>
+    </select>
   </div>
+
+  <!-- Name Input -->
+  <div class="input-container">
+    <input type="text" name="Name" id="nameInput" (focus)="onInputFocus($event)" (blur)="onInputBlur($event)" required />
+    <label for="nameInput">Name</label>
+  </div>
+
+  <!-- Email Input -->
+  <div class="input-container">
+    <input type="email" name="Email" id="emailInput" (focus)="onInputFocus($event)" (blur)="onInputBlur($event)" required />
+    <label for="emailInput">Email</label>
+  </div>
+
+  <!-- Phone Number Input -->
+  <div class="input-container">
+    <input type="text" name="PhoneNumber" id="phoneNumberInput" (focus)="onInputFocus($event)" (blur)="onInputBlur($event)" required />
+    <label for="phoneNumberInput">Phone Number</label>
+  </div>
+
+  <!-- Branch Selection -->
+  <div class="input-container branchInputContainer">
+    <select class="branchSelect" id="branchSelect" (change)="setBranch($event)" name="branch" required>
+      <option disabled selected>Select your branch</option>
+      <option *ngFor="let branch of branches" [value]="branch.branchcode">
+        {{ branch.branchname }}, {{ branch.branchcode }}
+      </option>
+    </select>
+    <div class="locateBtn" *ngIf="selectedBranch.branchcode" (click)="openLocation()">
+      <img class="locateBtnImg" src="./imgs/MapsLogo.png" alt="Locate" />
+    </div>
+  </div>
+
+  <!-- File Upload Section -->
+  <div class="file-container">
+    <input type="file" name="attachments" id="fileInput" (change)="previewFolders($event)" webkitdirectory directory multiple />
+    <label for="fileInput" class="fileLabel">
+      Drag & Drop folders here, or click to upload
+    </label>
+  </div>
+
+  <!-- Folder Preview Section with Accordion and File Previews -->
+  <div class="file-preview-list" *ngIf="filesHierarchy.length">
+    <ul>
+      <li *ngFor="let item of filesHierarchy">
+        <ng-container [ngTemplateOutlet]="displayFileTree" [ngTemplateOutletContext]="{ item: item, level: 0 }"></ng-container>
+      </li>
+    </ul>
+
+    <!-- Nested file tree structure with accordion -->
+    <ng-template #displayFileTree let-item="item" let-level="level">
+      <div class="folder-item" [style.paddingLeft.px]="level * 20">
+        <span *ngIf="item.children" (click)="toggleFolder(item)" class="folder-toggle">
+          <strong class="folder-icon">{{ item.isOpen ? '📂' : '📁' }}</strong> <!-- Folder Icons -->
+          {{ item.name }}
+        </span>
+        <span *ngIf="!item.children">{{ item.name }}</span>
+
+        <ul class="children" [class.open]="item.isOpen">
+          <li *ngFor="let child of item.children">
+            <ng-container [ngTemplateOutlet]="displayFileTree" [ngTemplateOutletContext]="{ item: child, level: level + 1 }"></ng-container>
+          </li>
+        </ul>
+      </div>
+    </ng-template>
+  </div>
+
+  <!-- Submit Button -->
+  <button type="submit" class="submitBtn">Submit</button>
 </div>

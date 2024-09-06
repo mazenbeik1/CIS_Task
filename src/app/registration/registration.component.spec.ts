@@ -1,16 +1,21 @@
 import { Component } from '@angular/core';
+import { CommonModule, NgComponentOutlet, NgTemplateOutlet, NgIf, NgFor } from '@angular/common';
+import { Branch } from '../app.config';
+
 
 @Component({
   selector: 'app-registration',
   templateUrl: './registration.component.html',
-  styleUrls: ['./registration.component.scss']
+  styleUrls: ['./registration.component.scss'],
+  imports: [NgFor, NgIf, CommonModule, NgTemplateOutlet, NgComponentOutlet],
+  standalone: true
 })
 export class RegistrationComponent {
   filesPreview: Array<{ name: string, src: string | ArrayBuffer | null }> = [];
-
+  filesHierarchy: any[] = [];
   // List of branches
-  branches: string[] = ['Branch A', 'Branch B', 'Branch C', 'Branch D'];
-  selectedBranch: string = 'Preferred Branch';
+  branches: Branch[] = [];
+  selectedBranch= <Branch>{};
 
   onInputFocus(event: FocusEvent): void {
     const inputElement = event.target as HTMLInputElement;
@@ -60,7 +65,7 @@ export class RegistrationComponent {
   setBranch(event: Event): void{
     const selectedElement = event.target as HTMLSelectElement;
     const branch = selectedElement.value;
-    this.selectedBranch = branch;
+    // this.selectedBranch = branch;
   }
 
   openLocation(): void {
@@ -69,6 +74,10 @@ export class RegistrationComponent {
     // const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lon}`;
     // window.open(googleMapsUrl, '_blank');
     console.log(this.selectedBranch)
+  }
+
+  toggleFolder(item: any): void {
+    item.isOpen = !item.isOpen;
   }
 
   previewFolders(event: Event): void {
@@ -92,4 +101,6 @@ export class RegistrationComponent {
       });
     }
   }
+
+  
 }
