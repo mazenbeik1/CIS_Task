@@ -11,9 +11,7 @@ import { NgFor, NgIf, CommonModule, NgTemplateOutlet, NgComponentOutlet } from '
   imports: [NgFor, NgIf, CommonModule, NgTemplateOutlet, NgComponentOutlet],
 })
 export class RegistrationComponent {
-  // Array to hold the file previews (file name and src for image preview)
-  filesHierarchy: any[] = [];
-  filesPreview: Array<{ name: string; src: string | ArrayBuffer | null }> = [];
+  attachmentsList: any[] = []; // Unified list for both files and folders
   branches: Branch[] = [];
   selectedBranch = <Branch>{};
   formData: { name: string; email: string; phoneNumber: string } = {
@@ -22,75 +20,126 @@ export class RegistrationComponent {
     phoneNumber: '',
   };
 
+  uploadType: 'file' | 'folder' = 'file'; // Default to file upload
+
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.fetchBranches();
   }
 
-  previewFolders(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const files = input.files;
-    if (files) {
-      const fileMap = this.buildFileHierarchy(Array.from(files));
-      this.filesHierarchy = fileMap;
-      this.filesPreview = this.generateImagePreviews(Array.from(files));
-      console.log('File Hierarchy:', this.filesHierarchy);
-    }
-  }
-  
-  // Generate image previews if the file is an image
-  generateImagePreviews(files: File[]): Array<{ name: string; src: string | ArrayBuffer | null }> {
-    const previews: Array<{ name: string; src: string | ArrayBuffer | null }> = [];
-    
-    files.forEach(file => {
-      if (file.type.startsWith('image/')) { // Check if the file is an image
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const result = e.target?.result; // Get the result from the event
-          if (result !== undefined) { // Ensure the result is not undefined
-            previews.push({ name: file.name, src: result });
-          } else {
-            previews.push({ name: file.name, src: null }); // Handle the undefined case by setting src to null
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  
-    return previews;
+  // Switch between file and folder upload without removing existing attachments
+  toggleUploadType(type: 'file' | 'folder'): void {
+    this.uploadType = type;
   }
 
-  buildFileHierarchy(files: File[]): any[] {
-    const fileMap: { [key: string]: any } = {};
-    files.forEach((file) => {
-      const pathParts = file.webkitRelativePath.split('/');
-      let currentDir = fileMap;
-      pathParts.forEach((part, index) => {
-        if (index === pathParts.length - 1) {
-          currentDir[part] = file;
-        } else {
-          if (!currentDir[part]) {
-            currentDir[part] = {};
-          }
-          currentDir = currentDir[part];
+  // Handle file preview for file upload
+  previewFiles(event: Event): void {
+    const fileInput = event.target as HTMLInputElement;
+    const files = fileInput.files;
+
+    if (files) {
+      Array.from(files).forEach(file => {
+        if (!this.attachmentsList.some(f => f.name === file.name)) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.attachmentsList.push({ name: file.name, src: reader.result, type: 'file' });
+          };
+          reader.readAsDataURL(file);
         }
       });
-    });
+    }
+  }
+
+  // Handle folder preview for folder upload
+  async previewFolders(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+
+    if (files) {
+      const fileMap = await this.buildFileHierarchy(Array.from(files));
+      this.attachmentsList = this.attachmentsList.concat(fileMap); // Append new folder structure to unified list
+    }
+  }
+
+  // Build the file hierarchy recursively
+  async buildFileHierarchy(files: File[]): Promise<any[]> {
+    const fileMap: { [key: string]: any } = {};
+    for (const file of files) {
+      // Ignore `desktop.ini`
+      if (file.name === 'desktop.ini') continue;
+
+      const pathParts = file.webkitRelativePath.split('/');
+      let currentDir = fileMap;
+
+      for (let index = 0; index < pathParts.length; index++) {
+        const part = pathParts[index];
+        if (index === pathParts.length - 1) {
+          currentDir[part] = {
+            name: file.name,
+            file,
+            isImage: this.isImage(file),
+            previewSrc: this.isImage(file) ? await this.getImagePreview(file) : null, // Check and add preview for images
+            type: 'file',
+            isOpen: false,
+          };
+        } else {
+          if (!currentDir[part]) {
+            currentDir[part] = { name: part, children: [], type: 'folder', isOpen: false };
+          }
+          currentDir = currentDir[part].children;
+        }
+      }
+    }
     return this.convertFileMapToArray(fileMap);
   }
 
+  // Convert file map to array structure for display
   convertFileMapToArray(fileMap: { [key: string]: any }): any[] {
     return Object.keys(fileMap).map((key) => {
       const value = fileMap[key];
-      if (value instanceof File) {
-        return { name: key, file: value };
+      if (value.file) {
+        return {
+          name: value.name,
+          file: value.file,
+          isImage: value.isImage,
+          previewSrc: value.previewSrc, // Image preview if available
+          type: 'file',
+        };
       } else {
-        return { name: key, children: this.convertFileMapToArray(value) };
+        return {
+          name: key,
+          children: this.convertFileMapToArray(value.children),
+          type: 'folder',
+          isOpen: value.isOpen,
+        };
       }
     });
   }
 
+  // Determine if the file is an image
+  isImage(file: File): boolean {
+    
+    const allowedTypes = ["jpg", "jpeg", "png", "jfif"]
+    if(allowedTypes.includes(file.name.split(".")[1]) ){
+      console.log("File type: "+ file.name.split(".")[1])
+      return true
+    }
+    return file.type.startsWith('image/');
+  }
+
+  // Read the image file and return its data URL for preview
+  getImagePreview(file: File): Promise<string | null> {
+    return new Promise<string | null>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        resolve(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Fetch branches from the API
   fetchBranches(): void {
     const apiUrl = 'http://81.29.111.142:8085/CVM/CVMMobileAPIs/api/getBranches';
     this.http.get<resp>(apiUrl).subscribe({
@@ -105,30 +154,35 @@ export class RegistrationComponent {
     });
   }
 
+  // Handle form submission
   onSubmit(): void {
     console.log('Form Submitted', this.formData);
   }
 
+  // Handle language change
   changeLanguage(event: Event): void {
     const select = event.target as HTMLSelectElement;
     const selectedLanguage = select.value;
     console.log('Selected Language:', selectedLanguage);
   }
 
+  // Open the branch location in Google Maps
   openLocation(): void {
-    if (this.selectedBranch && this.selectedBranch.branchcode) {
-      const branchLocationUrl = `https://www.google.com/maps?q=${this.selectedBranch.branchname}`;
-      window.open(branchLocationUrl, '_blank');
+    if (this.selectedBranch && this.selectedBranch.branchlat && this.selectedBranch.branchlng) {
+      const lat = this.selectedBranch.branchlat;
+      const lng = this.selectedBranch.branchlng;
+      const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+      window.open(googleMapsUrl, '_blank');
     }
   }
 
-  // When input is focused, add 'filled' class
+  // Add 'filled' class when input is focused
   onInputFocus(event: FocusEvent): void {
     const inputElement = event.target as HTMLInputElement;
     inputElement.classList.add('filled');
   }
 
-  // When input loses focus, remove 'filled' class if input is empty
+  // Remove 'filled' class if input is empty on blur
   onInputBlur(event: FocusEvent): void {
     const inputElement = event.target as HTMLInputElement;
     if (inputElement.value === '') {
@@ -141,10 +195,6 @@ export class RegistrationComponent {
     item.isOpen = !item.isOpen;
   }
 
-  toggleFile(file: any): void {
-    file.open = !file.open; // Toggle the open state
-  }
-
   setBranch(event: Event): void {
     const selectedElement = event.target as HTMLSelectElement;
     const branch = this.getBranchByID(selectedElement.value);
@@ -155,16 +205,4 @@ export class RegistrationComponent {
   getBranchByID(id: string): Branch {
     return this.branches.find(branch => branch.branchcode === id) || <Branch>{};
   }
-
-  getImagePreview(file: File): string | null {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    let previewSrc: string | null = null;
-    reader.onload = (event) => {
-      previewSrc = event.target?.result as string;
-    };
-    return previewSrc;
-  }
-  
-
 }

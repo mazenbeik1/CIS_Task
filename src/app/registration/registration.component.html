@@ -38,39 +38,94 @@
     </div>
   </div>
 
+  <!-- Upload Type Switch -->
+  <div class="uploadTypeSwitch">
+    <label class="switch">
+      <input type="checkbox" (change)="toggleUploadType(uploadType === 'file' ? 'folder' : 'file')" />
+      <span class="slider round"></span>
+    </label>
+    <span>{{ uploadType === 'file' ? 'Upload Files' : 'Upload Folders' }}</span>
+  </div>
+
   <!-- File Upload Section -->
-  <div class="file-container">
-    <input type="file" name="attachments" id="fileInput" (change)="previewFolders($event)" webkitdirectory directory multiple />
+  <div *ngIf="uploadType === 'file'" class="file-container">
+    <input
+      class="fileInput"
+      type="file"
+      name="attachments"
+      id="fileInput"
+      (change)="previewFiles($event)"
+      multiple
+    />
     <label for="fileInput" class="fileLabel">
-      Drag & Drop folders here, or click to upload
+      Drag & Drop files here or click to upload
     </label>
   </div>
 
-  <!-- Folder Preview Section with Accordion and File Previews -->
-  <div class="file-preview-list" *ngIf="filesHierarchy.length">
+  <!-- Folder Upload Section -->
+  <div *ngIf="uploadType === 'folder'" class="file-container">
+    <input
+      type="file"
+      name="attachments"
+      id="folderInput"
+      (change)="previewFolders($event)"
+      webkitdirectory
+      directory
+      multiple
+    />
+    <label for="folderInput" class="fileLabel">
+      Drag & Drop folders here or click to upload
+    </label>
+  </div>
+
+  <!-- Attachments Preview Section -->
+  <div *ngIf="attachmentsList.length" class="attachments-preview-list">
+    <h3>Attachments Preview</h3>
     <ul>
-      <li *ngFor="let item of filesHierarchy">
-        <ng-container [ngTemplateOutlet]="displayFileTree" [ngTemplateOutletContext]="{ item: item, level: 0 }"></ng-container>
+      <li *ngFor="let item of attachmentsList">
+        <!-- Display File Previews -->
+        <div *ngIf="item.type === 'file'" class="file-preview-item">
+          <img *ngIf="isImage(item) && item.src" [src]="item.src" class="image-preview" alt="{{ item.name }}" />
+          <span>{{ item.name }}</span>
+        </div>
+
+        <!-- Display Folder Previews -->
+        <div *ngIf="item.type === 'folder'" class="folder-item">
+          <span (click)="toggleFolder(item)" class="folder-toggle">
+            <strong class="folder-icon">{{ item.isOpen ? '📂' : '📁' }}</strong> {{ item.name }}
+          </span>
+
+          <ul *ngIf="item.isOpen" class="children">
+            <li *ngFor="let child of item.children">
+              <ng-container [ngTemplateOutlet]="displayFileTree" [ngTemplateOutletContext]="{ item: child, level: 1 }"></ng-container>
+            </li>
+          </ul>
+        </div>
       </li>
     </ul>
-
-    <!-- Nested file tree structure with accordion -->
-    <ng-template #displayFileTree let-item="item" let-level="level">
-      <div class="folder-item" [style.paddingLeft.px]="level * 20">
-        <span *ngIf="item.children" (click)="toggleFolder(item)" class="folder-toggle">
-          <strong class="folder-icon">{{ item.isOpen ? '📂' : '📁' }}</strong> <!-- Folder Icons -->
-          {{ item.name }}
-        </span>
-        <span *ngIf="!item.children">{{ item.name }}</span>
-
-        <ul class="children" [class.open]="item.isOpen">
-          <li *ngFor="let child of item.children">
-            <ng-container [ngTemplateOutlet]="displayFileTree" [ngTemplateOutletContext]="{ item: child, level: level + 1 }"></ng-container>
-          </li>
-        </ul>
-      </div>
-    </ng-template>
   </div>
+
+  <!-- Nested file tree structure for folders -->
+  <ng-template #displayFileTree let-item="item" let-level="level">
+    <div class="folder-item" [style.paddingLeft.px]="level * 20">
+      <span *ngIf="item.children" (click)="toggleFolder(item)" class="folder-toggle">
+        <strong class="folder-icon">{{ item.isOpen ? '📂' : '📁' }}</strong> {{ item.name }}
+      </span>
+
+      <!-- Check if the item is a file and display the preview -->
+      <div *ngIf="item.type === 'file'" class="file-preview-item">
+        <img *ngIf="isImage(item.file) && item.previewSrc" [src]="item.previewSrc" class="image-preview" alt="{{ item.name }}" />
+        <span>{{ item.name }}</span>
+      </div>
+
+      <!-- Recursively display folder contents -->
+      <ul *ngIf="item.children && item.isOpen">
+        <li *ngFor="let child of item.children">
+          <ng-container [ngTemplateOutlet]="displayFileTree" [ngTemplateOutletContext]="{ item: child, level: level + 1 }"></ng-container>
+        </li>
+      </ul>
+    </div>
+  </ng-template>
 
   <!-- Submit Button -->
   <button type="submit" class="submitBtn">Submit</button>

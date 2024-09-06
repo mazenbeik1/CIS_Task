@@ -131,8 +131,76 @@ $form-bg-color: #ffffff;
     }
   }
 
+  // Upload Type Switch
+  .uploadTypeSwitch {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 60px;
+      height: 34px;
+    }
+
+    // Hide the default checkbox
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    // The slider
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 34px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: '';
+      height: 26px;
+      width: 26px;
+      left: 4px;
+      bottom: 4px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: $primary-color;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    // Rounded sliders
+    .slider.round {
+      border-radius: 34px;
+    }
+
+    .slider.round:before {
+      border-radius: 50%;
+    }
+
+    span {
+      margin-left: 10px;
+      font-weight: bold;
+    }
+  }
+
   // File Preview List
-  .file-preview-list {
+  .attachments-preview-list {
     margin-top: 15px;
     display: flex;
     flex-direction: column;
@@ -144,7 +212,12 @@ $form-bg-color: #ffffff;
     max-height: 300px;
     overflow-y: auto;
 
-    // Individual File/Folders
+    // Individual Files: add bullet points (list-style)
+    ul li {
+      list-style-type: disc;
+    }
+
+    // Individual File Previews
     .file-preview-item {
       display: flex;
       align-items: center;
@@ -158,22 +231,6 @@ $form-bg-color: #ffffff;
         background-color: lighten($primary-color, 50%);
       }
 
-      .folder-toggle {
-        font-weight: bold;
-        color: $primary-color;
-        display: flex;
-        align-items: center;
-
-        .folder-icon {
-          margin-right: 5px;
-          transition: transform 0.3s;
-        }
-
-        &.open .folder-icon {
-          transform: rotate(90deg);
-        }
-      }
-
       .image-preview {
         width: 30px;
         height: 30px;
@@ -183,18 +240,33 @@ $form-bg-color: #ffffff;
       }
     }
 
-    // Nested File Structure
-    .children {
-      display: none;
-      opacity: 0;
-      transition: opacity 0.3s, max-height 0.3s;
-      max-height: 0;
+    // Folder Items: Remove bullet points (list-style)
+    .folder-item {
+      padding-left: 10px;
+      list-style-type: none;
+    }
 
-      &.open {
-        display: block;
-        opacity: 1;
-        max-height: 1000px;
+    .folder-toggle {
+      font-weight: bold;
+      color: $primary-color;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+
+      .folder-icon {
+        margin-right: 5px;
+        transition: transform 0.3s;
       }
+
+      &.open .folder-icon {
+        transform: rotate(90deg);
+      }
+    }
+
+    .children {
+      margin-left: 20px;
+      list-style-type: none;
+      padding-left: 10px;
     }
   }
 
