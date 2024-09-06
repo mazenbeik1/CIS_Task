@@ -65,10 +65,28 @@
         required
       >
         <option [value]="{}" disabled selected>Select your branch</option>
-        <option *ngFor="let branch of branches" [value]="branch.branchcode" >{{ branch.branchname }}, {{branch.branchcode}}</option>
+        <option *ngFor="let branch of branches" [value]="branch.branchcode">
+          {{ branch.branchname }}, {{ branch.branchcode }}
+        </option>
       </select>
-      <div clas="locateBtn" *ngIf="selectedBranch.branchcode" style="width: 100%;" (click)="openLocation()"><img clas="locateBtnImg" src="./imgs/MapsLogo.png" style="width: 40px; align-items: end;" alt=""></div>
-      <!-- <label for="branchSelect">Preferred Branch   *ngIf="selectedBranch.branchcode"  </label> -->
+      <div class="locateBtn" *ngIf="selectedBranch.branchcode" (click)="openLocation()">
+        <img class="locateBtnImg" src="./imgs/MapsLogo.png" alt="Locate" />
+      </div>
+    </div>
+
+    <!-- Folder Upload Section -->
+    <div class="file-container">
+      <input
+        class="fileInput"
+        type="file"
+        name="attachments"
+        id="fileInput"
+        (change)="previewFolders($event)"
+        webkitdirectory directory multiple
+      />
+      <label for="fileInput" class="fileLabel">
+        Drag & Drop folders here, or click to upload
+      </label>
     </div>
 
     <!-- File Upload Section -->

@@ -70,4 +70,26 @@ export class RegistrationComponent {
     // window.open(googleMapsUrl, '_blank');
     console.log(this.selectedBranch)
   }
+
+  previewFolders(event: Event): void {
+    const fileInput = event.target as HTMLInputElement;
+    const files = fileInput.files;
+    if (files) {
+      Array.from(files).forEach(file => {
+        if (!this.filesPreview.some(f => f.name === file.name)) {
+          const reader = new FileReader();
+          // If the file is an image, we preview it
+          if (file.type.startsWith('image/')) {
+            reader.onload = () => {
+              this.filesPreview.push({ name: file.name, src: reader.result });
+            };
+            reader.readAsDataURL(file); // Convert image file to base64 for preview
+          } else {
+            // Non-image files will be listed without preview
+            this.filesPreview.push({ name: file.name, src: null });
+          }
+        }
+      });
+    }
+  }
 }
