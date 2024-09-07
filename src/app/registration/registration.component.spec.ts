@@ -159,12 +159,25 @@ export class RegistrationComponent {
     });
   }
 
+  // Open file in a new tab
+  openFileInNewTab(file: any): void {
+    if (file.src) {
+      const newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(
+          `<iframe src="${file.src}" frameborder="0" style="width:100%; height:100%"></iframe>`
+        );
+      }
+    }
+  }
+
   // Fetch branches from the API
   fetchBranches(): void {
-    const apiUrl = 'http://81.29.111.142:8085/CVM/CVMMobileAPIs/api/getBranches';
+    const apiUrl = 'https://81.29.111.142:8085/CVM/CVMMobileAPIs/api/getBranches';
     this.http.get<resp>(apiUrl).subscribe({
       next: (response: resp) => {
         this.branches = response.result.sort((a, b) => (a.branchcode > b.branchcode ? 1 : -1));
+        console.log(this.branches)
       },
       error: (error) => {
         console.error('Error fetching branches:', error);
@@ -206,6 +219,7 @@ export class RegistrationComponent {
     item.isOpen = !item.isOpen;
   }
 
+  // Set selectedBranch
   setBranch(event: Event): void {
     const selectedElement = event.target as HTMLSelectElement;
     const branch = this.getBranchByID(selectedElement.value);

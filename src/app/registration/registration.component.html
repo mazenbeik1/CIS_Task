@@ -7,8 +7,8 @@
       (change)="changeLanguage($event)"
       aria-label="Language"
     >
-      <option value="en" [selected]="selectedLanguage === 'en'">English</option>
-      <option value="ar" [selected]="selectedLanguage === 'ar'">Arabic</option>
+      <option value="en" [selected]="selectedLanguage === 'en'">{{ 'LANGUAGES.ENGLISH' | translate }}</option>
+      <option value="ar" [selected]="selectedLanguage === 'ar'">{{ 'LANGUAGES.ARABIC' | translate }}</option>
     </select>
   </div>
 
@@ -35,7 +35,7 @@
     <select class="branchSelect" id="branchSelect" (change)="setBranch($event)" name="branch" required>
       <option disabled selected>{{ 'REGISTRATION_FORM.SELECT_BRANCH' | translate }}</option>
       <option *ngFor="let branch of branches" [value]="branch.branchcode">
-        {{ branch.branchname }}, {{ branch.branchcode }}
+        {{ selectedLanguage == "en"? branch.branchname: branch.branchnamear }}, {{ branch.branchcode }}
       </option>
     </select>
     <div class="locateBtn" *ngIf="selectedBranch.branchcode" (click)="openLocation()">
@@ -90,8 +90,8 @@
       <li *ngFor="let item of attachmentsList">
         <!-- Display File Previews -->
         <div *ngIf="item.type === 'file'" class="file-preview-item">
-          <img *ngIf="isImage(item) && item.src" [src]="item.src" class="image-preview" alt="{{ item.name }}" />
-          <span>{{ item.name }}</span>
+          <img *ngIf="isImage(item) && item.previewSrc" [src]="item.previewSrc" class="image-preview" alt="{{ item.name }}" />
+          <span (click)="openFileInNewTab(item.previewSrc)">{{ item.name }}</span>
         </div>
 
         <!-- Display Folder Previews -->
@@ -120,7 +120,7 @@
       <!-- Check if the item is a file and display the preview -->
       <div *ngIf="item.type === 'file'" class="file-preview-item">
         <img *ngIf="isImage(item.file) && item.previewSrc" [src]="item.previewSrc" class="image-preview" alt="{{ item.name }}" />
-        <span>{{ item.name }}</span>
+        <span (click)="openFileInNewTab(item.previewSrc)">{{ item.name }}</span>
       </div>
 
       <!-- Recursively display folder contents -->

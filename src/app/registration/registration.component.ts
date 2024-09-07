@@ -32,7 +32,7 @@ export class RegistrationComponent {
     phoneNumber: '',
   };
   selectedLanguage: string = 'en'; // Default language
-  uploadType: 'file' | 'folder' = 'file'; // Default to file upload
+  uploadType: 'file' | 'folder' = 'folder'; // Default to file upload
 
   constructor() {
     this.translate.setDefaultLang('en'); // Set default language to English
@@ -53,6 +53,19 @@ export class RegistrationComponent {
     }
   }
 
+  // Open file in a new tab
+  openFileInNewTab(file: any): void {
+    console.log("opening: "+ JSON.stringify(file))
+    if (file) {
+      const newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(
+          `<iframe src="${file}" frameborder="0" style="width:100%; height:100%"></iframe>`
+        );
+      }
+    } 
+  }
+
   // Switch between file and folder upload without removing existing attachments
   toggleUploadType(type: 'file' | 'folder'): void {
     this.uploadType = type;
@@ -68,7 +81,7 @@ export class RegistrationComponent {
         if (!this.attachmentsList.some((f) => f.name === file.name)) {
           const reader = new FileReader();
           reader.onload = () => {
-            this.attachmentsList.push({ name: file.name, src: reader.result, type: 'file' });
+            this.attachmentsList.push({ name: file.name, previewSrc: reader.result, type: 'file' });
           };
           reader.readAsDataURL(file);
         }
@@ -102,9 +115,9 @@ export class RegistrationComponent {
         if (index === pathParts.length - 1) {
           currentDir[part] = {
             name: file.name,
-            file,
+            file: file,
             isImage: this.isImage(file),
-            previewSrc: this.isImage(file) ? await this.getImagePreview(file) : null, // Check and add preview for images
+            previewSrc: await this.getImagePreview(file), // Check and add preview for images
             type: 'file',
             isOpen: false,
           };
@@ -216,4 +229,7 @@ export class RegistrationComponent {
   getBranchByID(id: string): Branch {
     return this.branches.find((branch) => branch.branchcode === id) || <Branch>{};
   }
+
+  
+
 }
