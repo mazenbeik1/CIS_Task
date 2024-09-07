@@ -59,7 +59,7 @@
       type="file"
       name="attachments"
       id="fileInput"
-      (change)="previewFiles($event)"
+      (change)="uploadFiles($event)"
       multiple
     />
     <label for="fileInput" class="fileLabel">
@@ -73,7 +73,7 @@
       type="file"
       name="attachments"
       id="folderInput"
-      (change)="previewFolders($event)"
+      (change)="uploadFolders($event)"
       webkitdirectory
       directory
       multiple

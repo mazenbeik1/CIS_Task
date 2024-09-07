@@ -72,7 +72,7 @@ export class RegistrationComponent {
   }
 
   // Handle file preview for file upload
-  previewFiles(event: Event): void {
+  uploadFiles(event: Event): void {
     const fileInput = event.target as HTMLInputElement;
     const files = fileInput.files;
 
@@ -90,7 +90,7 @@ export class RegistrationComponent {
   }
 
   // Handle folder preview for folder upload
-  async previewFolders(event: Event): Promise<void> {
+  async uploadFolders(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = input.files;
 

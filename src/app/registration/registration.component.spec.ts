@@ -59,25 +59,25 @@ export class RegistrationComponent {
   }
 
   // Handle file preview for file upload
-  previewFiles(event: Event): void {
+  uploadFiles(event: Event): void {
     const fileInput = event.target as HTMLInputElement;
     const files = fileInput.files;
 
     if (files) {
-      Array.from(files).forEach((file) => {
+      Array.from(files).forEach(async (file) => {
         if (!this.attachmentsList.some((f) => f.name === file.name)) {
-          const reader = new FileReader();
-          reader.onload = () => {
-            this.attachmentsList.push({ name: file.name, src: reader.result, type: 'file' });
-          };
-          reader.readAsDataURL(file);
+          // const reader = new FileReader();
+          // reader.onload = () => {
+            this.attachmentsList.push({ name: file.name, previewSrc: await this.readFileData(file), type: 'file' });
+          // };
+          // reader.readAsDataURL(file);
         }
       });
     }
   }
 
   // Handle folder preview for folder upload
-  async previewFolders(event: Event): Promise<void> {
+  async uploadFolders(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = input.files;
 
@@ -85,9 +85,11 @@ export class RegistrationComponent {
       const fileMap = await this.buildFileHierarchy(Array.from(files));
       this.attachmentsList = this.attachmentsList.concat(fileMap); // Append new folder structure to unified list
     }
+
+    
   }
 
-  // Build the file hierarchy recursively
+  // Build the file hierarchy
   async buildFileHierarchy(files: File[]): Promise<any[]> {
     const fileMap: { [key: string]: any } = {};
     for (const file of files) {
@@ -104,7 +106,7 @@ export class RegistrationComponent {
             name: file.name,
             file,
             isImage: this.isImage(file),
-            previewSrc: this.isImage(file) ? await this.getImagePreview(file) : null, // Check and add preview for images
+            previewSrc: await this.readFileData(file),
             type: 'file',
             isOpen: false,
           };
@@ -149,7 +151,7 @@ export class RegistrationComponent {
   }
 
   // Read the image file and return its data URL for preview
-  getImagePreview(file: File): Promise<string | null> {
+  readFileData(file: File): Promise<string | null> {
     return new Promise<string | null>((resolve) => {
       const reader = new FileReader();
       reader.onload = (event) => {
