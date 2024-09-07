@@ -9,7 +9,8 @@ $form-bg-color: #ffffff;
 
 // Main Form Styles
 .registrationForm {
-  max-width: 700px;
+  max-width: 500px;
+  width: 70vw;
   margin: 50px auto;
   padding: 40px;
   border: 1px solid $border-color;
@@ -181,7 +182,7 @@ $form-bg-color: #ffffff;
     }
 
     input:checked + .slider:before {
-      transform: translateX(26px);
+      transform: translateX(16px);
     }
 
     // Rounded sliders
