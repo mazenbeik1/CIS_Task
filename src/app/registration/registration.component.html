@@ -89,9 +89,9 @@
     <ul>
       <li *ngFor="let item of attachmentsList">
         <!-- Display File Previews -->
-        <div *ngIf="item.type === 'file'" class="file-preview-item">
+        <div (click)="openFileInNewTab(item.previewSrc)" *ngIf="item.type === 'file'" class="file-preview-item">
           <img *ngIf="isImage(item) && item.previewSrc" [src]="item.previewSrc" class="image-preview" alt="{{ item.name }}" />
-          <span (click)="openFileInNewTab(item.previewSrc)">{{ item.name }}</span>
+          <span >{{ item.name }}</span>
         </div>
 
         <!-- Display Folder Previews -->
@@ -118,9 +118,9 @@
       </span>
 
       <!-- Check if the item is a file and display the preview -->
-      <div *ngIf="item.type === 'file'" class="file-preview-item">
+      <div (click)="openFileInNewTab(item.previewSrc)" *ngIf="item.type === 'file'" class="file-preview-item">
         <img *ngIf="isImage(item.file) && item.previewSrc" [src]="item.previewSrc" class="image-preview" alt="{{ item.name }}" />
-        <span (click)="openFileInNewTab(item.previewSrc)">{{ item.name }}</span>
+        <span >{{ item.name }}</span>
       </div>
 
       <!-- Recursively display folder contents -->
