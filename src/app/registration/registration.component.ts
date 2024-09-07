@@ -1,122 +1,183 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
+import { TranslateService, TranslateModule } from '@ngx-translate/core'; // Import TranslateModule here
 import { Branch, resp } from '../app.config';
-import { NgFor, NgIf, CommonModule } from '@angular/common';
+import { NgFor, NgIf, CommonModule, NgTemplateOutlet, NgComponentOutlet } from '@angular/common';
 
 @Component({
   selector: 'app-registration',
   templateUrl: './registration.component.html',
   styleUrls: ['./registration.component.scss'],
   standalone: true,
-  imports: [NgFor, NgIf],
+  imports: [
+    CommonModule,
+    NgFor,
+    NgIf,
+    NgTemplateOutlet,
+    NgComponentOutlet,
+    TranslateModule, // Import TranslateModule here to enable the translate pipe
+  ],
 })
 export class RegistrationComponent {
-  // Array to hold the file previews (file name and src for image preview)
-  filesPreview: Array<{ name: string, src: string | ArrayBuffer | null }> = [];
+  // Injecting necessary services
+  private http = inject(HttpClient);
+  private translate = inject(TranslateService);
 
-  // List of branches (to be populated from the API)
+  attachmentsList: any[] = []; // Unified list for both files and folders
   branches: Branch[] = [];
-
-  // Object to hold the selected branch details
   selectedBranch = <Branch>{};
+  formData = {
+    name: '',
+    email: '',
+    phoneNumber: '',
+  };
+  selectedLanguage: string = 'en'; // Default language
+  uploadType: 'file' | 'folder' = 'folder'; // Default to file upload
 
-  constructor(private http: HttpClient) {}
+  constructor() {
+    this.translate.setDefaultLang('en'); // Set default language to English
+    this.translate.use('en'); // Start with English as default language
+  }
 
-  // Fetch the branches from the server on component load
   ngOnInit(): void {
     this.fetchBranches();
   }
 
-  // Handles file and folder uploads, previews images
-  previewFolders(event: Event): void {
-    const fileInput = event.target as HTMLInputElement;
-    const files = fileInput.files;
-    if (files) {
-      Array.from(files).forEach(file => {
-        if (!this.filesPreview.some(f => f.name === file.name)) {
-          const reader = new FileReader();
-          // If the file is an image, we preview it
-          if (file.type.startsWith('image/')) {
-            reader.onload = () => {
-              this.filesPreview.push({ name: file.name, src: reader.result });
-            };
-            reader.readAsDataURL(file); // Convert image file to base64 for preview
-          } else {
-            // Non-image files will be listed without preview
-            this.filesPreview.push({ name: file.name, src: null });
-          }
-        }
-      });
-    }
-  }
-
-  previewFiles(event: Event): void {
-    const fileInput = event.target as HTMLInputElement;
-    const files = fileInput.files;
-    if (files) {
-      Array.from(files).forEach(file => {
-        if (!this.filesPreview.some(f => f.name === file.name)) {
-          if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              this.filesPreview.push({ name: file.name, src: reader.result });
-            };
-            reader.readAsDataURL(file);
-          } else {
-            this.filesPreview.push({ name: file.name, src: null });
-          }
-        }
-      });
-    }
-  }
-
-  // Removes a file from the preview list
-  removeFile(index: number): void {
-    this.filesPreview.splice(index, 1);
-  }
-
-  // Handle form submission
-  onSubmit(): void {
-    if (this.selectedBranch === <Branch>{}) {
-      alert('Please select a preferred branch.');
-    } else {
-      // Handle form submission logic here
-      console.log('Selected Branch:', this.selectedBranch);
-      // Further form submission logic can be added here (e.g., POST request)
-    }
-  }
-
-  // Handle language change from the dropdown
+  // Function to switch between languages with proper type assertion
   changeLanguage(event: Event): void {
-    const selectElement = event.target as HTMLSelectElement;
-    const selectedLanguage = selectElement.value;
-    // Add logic here to switch the app language using a translation service
-    console.log('Selected Language:', selectedLanguage);
+    const target = event.target as HTMLSelectElement; // Assert that event.target is an HTMLSelectElement
+    if (target && target.value) {
+      const selectedLanguage = target.value;
+      this.translate.use(selectedLanguage); // Change the language
+      this.selectedLanguage = selectedLanguage;
+    }
   }
 
-  // Sets the selected branch based on the dropdown selection
-  setBranch(event: Event): void {
-    const selectedElement = event.target as HTMLSelectElement;
-    const branch = this.getBranchByID(selectedElement.value);
-    this.selectedBranch = branch;
-    console.log(this.selectedBranch.branchcode);
+  // Open file in a new tab
+  openFileInNewTab(file: any): void {
+    console.log("opening: "+ JSON.stringify(file))
+    if (file) {
+      const newWindow = window.open();
+      if (newWindow) {
+        newWindow.document.write(
+          `<iframe src="${file}" frameborder="0" style="width:100%; height:100%"></iframe>`
+        );
+      }
+    } 
   }
 
-  // Finds a branch by its branchcode
-  getBranchByID(id: string): Branch {
-    return this.branches.find(branch => branch.branchcode === id) || <Branch>{};
+  // Switch between file and folder upload without removing existing attachments
+  toggleUploadType(type: 'file' | 'folder'): void {
+    this.uploadType = type;
   }
 
-  // Fetches the list of branches from an external API
+  // Handle file preview for file upload
+  uploadFiles(event: Event): void {
+    const fileInput = event.target as HTMLInputElement;
+    const files = fileInput.files;
+
+    if (files) {
+      Array.from(files).forEach((file) => {
+        if (!this.attachmentsList.some((f) => f.name === file.name)) {
+          const reader = new FileReader();
+          reader.onload = () => {
+            this.attachmentsList.push({ name: file.name, previewSrc: reader.result, type: 'file' });
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+  }
+
+  // Handle folder preview for folder upload
+  async uploadFolders(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const files = input.files;
+
+    if (files) {
+      const fileMap = await this.buildFileHierarchy(Array.from(files));
+      this.attachmentsList = this.attachmentsList.concat(fileMap); // Append new folder structure to unified list
+    }
+  }
+
+  // Build the file hierarchy recursively
+  async buildFileHierarchy(files: File[]): Promise<any[]> {
+    const fileMap: { [key: string]: any } = {};
+    for (const file of files) {
+      // Ignore `desktop.ini`
+      if (file.name === 'desktop.ini') continue;
+
+      const pathParts = file.webkitRelativePath.split('/');
+      let currentDir = fileMap;
+
+      for (let index = 0; index < pathParts.length; index++) {
+        const part = pathParts[index];
+        if (index === pathParts.length - 1) {
+          currentDir[part] = {
+            name: file.name,
+            file: file,
+            isImage: this.isImage(file),
+            previewSrc: await this.getImagePreview(file), // Check and add preview for images
+            type: 'file',
+            isOpen: false,
+          };
+        } else {
+          if (!currentDir[part]) {
+            currentDir[part] = { name: part, children: [], type: 'folder', isOpen: false };
+          }
+          currentDir = currentDir[part].children;
+        }
+      }
+    }
+    return this.convertFileMapToArray(fileMap);
+  }
+
+  // Convert file map to array structure for display
+  convertFileMapToArray(fileMap: { [key: string]: any }): any[] {
+    return Object.keys(fileMap).map((key) => {
+      const value = fileMap[key];
+      if (value.file) {
+        return {
+          name: value.name,
+          file: value.file,
+          isImage: value.isImage,
+          previewSrc: value.previewSrc, // Image preview if available
+          type: 'file',
+        };
+      } else {
+        return {
+          name: key,
+          children: this.convertFileMapToArray(value.children),
+          type: 'folder',
+          isOpen: value.isOpen,
+        };
+      }
+    });
+  }
+
+  // Determine if the file is an image
+  isImage(file: File): boolean {
+    const allowedTypes = ['jpg', 'jpeg', 'png', 'jfif'];
+    return allowedTypes.includes(file.name.split('.').pop() || '') || file.type.startsWith('image/');
+  }
+
+  // Read the image file and return its data URL for preview
+  getImagePreview(file: File): Promise<string | null> {
+    return new Promise<string | null>((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        resolve(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Fetch branches from the API
   fetchBranches(): void {
     const apiUrl = 'http://81.29.111.142:8085/CVM/CVMMobileAPIs/api/getBranches';
     this.http.get<resp>(apiUrl).subscribe({
       next: (response: resp) => {
-        // Sorting branches alphabetically by branchcode
-        this.branches = response.result.sort((a, b) =>
-          a.branchcode > b.branchcode ? 1 : -1
-        );
-        console.log('Branches loaded:', this.branches);
+        this.branches = response.result.sort((a, b) => (a.branchcode > b.branchcode ? 1 : -1));
       },
       error: (error) => {
         console.error('Error fetching branches:', error);
@@ -124,29 +185,51 @@ export class RegistrationComponent {
     });
   }
 
-  // Opens the selected branch location in Google Maps
-  openLocation(): void {
-    const lat = this.selectedBranch.branchlat;
-    const lng = this.selectedBranch.branchlng;
-    if (lat === undefined || lng === undefined) {
-      console.log(this.selectedBranch);
-      return;
-    }
-    const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
-    window.open(googleMapsUrl, '_blank');
+  // Handle form submission
+  onSubmit(): void {
+    console.log('Form Submitted', this.formData);
   }
 
-  // When input is focused, add 'filled' class
+  // Open the branch location in Google Maps
+  openLocation(): void {
+    if (this.selectedBranch && this.selectedBranch.branchlat && this.selectedBranch.branchlng) {
+      const lat = this.selectedBranch.branchlat;
+      const lng = this.selectedBranch.branchlng;
+      const googleMapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+      window.open(googleMapsUrl, '_blank');
+    }
+  }
+
+  // Add 'filled' class when input is focused
   onInputFocus(event: FocusEvent): void {
     const inputElement = event.target as HTMLInputElement;
     inputElement.classList.add('filled');
   }
 
-  // When input loses focus, remove 'filled' class if input is empty
+  // Remove 'filled' class if input is empty on blur
   onInputBlur(event: FocusEvent): void {
     const inputElement = event.target as HTMLInputElement;
     if (inputElement.value === '') {
       inputElement.classList.remove('filled');
     }
   }
+
+  // Toggle folder open/close state for accordion functionality
+  toggleFolder(item: any): void {
+    item.isOpen = !item.isOpen;
+  }
+
+  setBranch(event: Event): void {
+    const selectedElement = event.target as HTMLSelectElement;
+    const branch = this.getBranchByID(selectedElement.value);
+    this.selectedBranch = branch;
+    console.log(this.selectedBranch.branchcode);
+  }
+
+  getBranchByID(id: string): Branch {
+    return this.branches.find((branch) => branch.branchcode === id) || <Branch>{};
+  }
+
+  
+
 }
