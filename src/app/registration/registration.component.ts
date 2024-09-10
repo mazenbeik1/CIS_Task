@@ -11,8 +11,6 @@ import { NgFor, NgIf, CommonModule, NgTemplateOutlet, NgComponentOutlet } from '
   standalone: true,
   imports: [
     CommonModule,
-    NgFor,
-    NgIf,
     NgTemplateOutlet,
     NgComponentOutlet,
     TranslateModule, // Import TranslateModule here to enable the translate pipe
@@ -81,7 +79,7 @@ export class RegistrationComponent {
         if (!this.attachmentsList.some((f) => f.name === file.name)) {
           const reader = new FileReader();
           reader.onload = () => {
-            this.attachmentsList.push({ name: file.name, previewSrc: reader.result, type: 'file' });
+            this.attachmentsList.push({ name: file.name, previewSrc: reader.result, type: 'file', file: file });
           };
           reader.readAsDataURL(file);
         }
@@ -112,7 +110,7 @@ export class RegistrationComponent {
 
       for (let index = 0; index < pathParts.length; index++) {
         const part = pathParts[index];
-        if (index === pathParts.length - 1) {
+        if (index === pathParts.length - 1) { //If reached the filel object
           currentDir[part] = {
             name: file.name,
             file: file,
@@ -122,7 +120,7 @@ export class RegistrationComponent {
             isOpen: false,
           };
         } else {
-          if (!currentDir[part]) {
+          if (!currentDir[part]) { //If not recorded yet
             currentDir[part] = { name: part, children: [], type: 'folder', isOpen: false };
           }
           currentDir = currentDir[part].children;
@@ -186,9 +184,40 @@ export class RegistrationComponent {
   }
 
   // Handle form submission
-  onSubmit(): void {
-    console.log('Form Submitted', this.formData);
+  // Handle form submission with validation
+onSubmit(): void {
+  // Reset any previous errors
+  let isValid = true;
+
+  // Validate name
+  if (!this.formData.name.trim()) {
+    isValid = false;
+    console.error('Name is required.');
   }
+
+  // Validate email using a basic regex pattern
+  const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!this.formData.email.trim() || !emailPattern.test(this.formData.email)) {
+    isValid = false;
+    console.error('Invalid email address.');
+  }
+
+  // Validate phone number (you can adjust the validation as needed)
+  const phonePattern = /^[0-9]{10}$/; // Simple 10-digit phone number validation
+  if (!this.formData.phoneNumber.trim() || !phonePattern.test(this.formData.phoneNumber)) {
+    isValid = false;
+    console.error('Invalid phone number. Must be 10 digits.');
+  }
+
+  if (isValid) {
+    // If all validations pass, submit the form
+    console.log('Form Submitted:', this.formData);
+    // You can now proceed to send the form data to the server or perform further actions
+  } else {
+    console.log('Form has errors. Please correct them.');
+  }
+}
+
 
   // Open the branch location in Google Maps
   openLocation(): void {
